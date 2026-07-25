@@ -73,7 +73,7 @@ def predict():
     """
     POST /predict
     Body: { "cgpa": 8.45 }
-    Returns: { "iq": 121, "category": "Above Average", ... }
+    Returns: { "iq": 108, "category": "Average", ... }
     """
     try:
         body = request.get_json(force=True)
