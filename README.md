@@ -1,6 +1,10 @@
 # 🧠 AI IQ Predictor
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-ai--iq--predictor.vercel.app-black?style=for-the-badge&logo=vercel)](https://ai-iq-predictor.vercel.app/)
+
 A full-stack web application that predicts your IQ score based on your CGPA using a machine learning model trained on real student data. Built with a premium Panera-inspired UI and powered by a Flask + scikit-learn backend.
+
+🔗 **Live:** [https://ai-iq-predictor.vercel.app/](https://ai-iq-predictor.vercel.app/)
 
 ---
 
@@ -14,12 +18,16 @@ A full-stack web application that predicts your IQ score based on your CGPA usin
 
 ```
 AI IQ Predictor/
+├── api/
+│   └── index.py                # Vercel serverless entry point
 ├── backend/
-│   ├── backend.py              # Flask server + Linear Regression ML model
+│   ├── backend.py              # Local dev Flask server
 │   └── templates/
 │       └── index.html          # Frontend UI (served by Flask)
 ├── dataset/
 │   └── student_clustering.csv  # Training dataset (200 student records)
+├── requirements.txt            # Python dependencies for Vercel
+├── vercel.json                 # Vercel routing + Python runtime config
 └── README.md
 ```
 
@@ -119,6 +127,22 @@ Returns server and model status.
 | ML Model  | scikit-learn (LinearRegression)   |
 | Data      | pandas, NumPy                     |
 | Fonts     | Google Fonts (Playfair Display, Inter) |
+
+---
+
+## ☁️ Deployment
+
+The app is deployed on **Vercel** using the Python serverless runtime.
+
+🔗 **Live URL:** [https://ai-iq-predictor.vercel.app/](https://ai-iq-predictor.vercel.app/)
+
+| File | Role |
+|---|---|
+| `vercel.json` | Routes all traffic to `api/index.py`, sets Python runtime |
+| `requirements.txt` | Installed by Vercel on each build |
+| `api/index.py` | Serverless Flask app — same logic as `backend.py`, paths adjusted for Vercel |
+
+To redeploy, simply push to `main` — Vercel auto-deploys on every commit.
 
 ---
 
