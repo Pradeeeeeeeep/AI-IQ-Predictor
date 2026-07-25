@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CGPA to IQ Predictor · Panera</title>
+  <meta name="description" content="Enter your CGPA and get your predicted IQ score. A statistical estimation tool built on cognitive research." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    :root {
+      --bg-outer: #5c5240;
+      --bg-card: #e8ddc4;
+      --text-dark: #2e1e0f;
+      --text-medium: #4a3520;
+      --text-light: #7a6040;
+      --text-muted: #9a8060;
+      --border: #c8b990;
+      --red: #a01c1c;
+      --red-hover: #8a1515;
+      --badge-bg: #cfc4a8;
+      --divider: #c0b090;
+      --input-bg: #ede3c8;
+    }
+    html, body {
+      height: 100%;
+      background-color: var(--bg-outer);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+    }
+    .browser-shell {
+      width: 1020px;
+      max-width: 98vw;
+      background: var(--bg-card);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.45), 0 8px 24px rgba(0,0,0,0.25);
+    }
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-left button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-dark);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 4px;
+    }
+    .nav-left button span {
+      display: block;
+      width: 20px;
+      height: 1.5px;
+      background: var(--text-dark);
+      border-radius: 2px;
+    }
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.32em;
+      color: var(--text-dark);
+      text-transform: uppercase;
+    }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .nav-right button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      transition: opacity 0.2s;
+    }
+    .nav-right button:hover { opacity: 0.6; }
+    .nav-right svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--text-dark);
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 480px;
+    }
+    .left-panel {
+      padding: 36px 40px 36px 36px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+    .estd {
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+    .estd-line {
+      display: inline-block;
+      width: 28px;
+      height: 1px;
+      background: var(--text-light);
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 52px;
+      font-weight: 500;
+      line-height: 1.12;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+      letter-spacing: -0.01em;
+    }
+    .hero-subtitle {
+      font-size: 13.5px;
+      color: var(--text-medium);
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    .input-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 10px;
+    }
+    .input-wrapper {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .cgpa-input {
+      width: 100%;
+      padding: 16px 80px 16px 18px;
+      background: var(--input-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text-dark);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -moz-appearance: textfield;
+    }
+    .cgpa-input::-webkit-inner-spin-button,
+    .cgpa-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .cgpa-input:focus {
+      border-color: var(--text-medium);
+      box-shadow: 0 0 0 3px rgba(74, 53, 32, 0.1);
+    }
+    .input-suffix {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 13px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .predict-btn {
+      width: 100%;
+      padding: 17px;
+      background: var(--red);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.12s, box-shadow 0.2s;
+      box-shadow: 0 4px 16px rgba(160, 28, 28, 0.30);
+    }
+    .predict-btn:hover {
+      background: var(--red-hover);
+      box-shadow: 0 6px 22px rgba(160, 28, 28, 0.40);
+      transform: translateY(-1px);
+    }
+    .predict-btn:active {
+      transform: translateY(0);
+    }
+    .right-panel {
+      padding: 36px 40px 36px 44px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .iq-label {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--text-medium);
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .iq-score {
+      font-family: 'Playfair Display', serif;
+      font-size: 110px;
+      font-weight: 500;
+      line-height: 1.0;
+      color: var(--text-dark);
+      text-align: center;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .iq-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--badge-bg);
+      border-radius: 100px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-medium);
+      margin-bottom: 18px;
+      border: 1px solid var(--divider);
+    }
+    .iq-badge svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--text-medium);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .iq-desc {
+      font-size: 13.5px;
+      color: var(--text-medium);
+      text-align: center;
+      line-height: 1.65;
+      max-width: 300px;
+      margin-bottom: 28px;
+    }
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: var(--divider);
+      margin-bottom: 28px;
+    }
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+    }
+    .skill-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+    }
+    .skill-icon {
+      width: 36px;
+      height: 36px;
+      stroke: var(--text-medium);
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .skill-name {
+      font-size: 11.5px;
+      color: var(--text-light);
+    }
+    .skill-value {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+    footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 28px;
+      border-top: 1px solid var(--border);
+    }
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11.5px;
+      color: var(--text-light);
+    }
+    .footer-left svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--text-light);
+      fill: none;
+      stroke-width: 1.5;
+      flex-shrink: 0;
+    }
+    .footer-right {
+      font-size: 11.5px;
+      color: var(--text-light);
+      font-style: italic;
+    }
+    @keyframes pop-in {
+      0%   { transform: scale(0.9); opacity: 0.5; }
+      60%  { transform: scale(1.05); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .iq-score.pop {
+      animation: pop-in 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    }
+  </style>
+</head>
+<body>
+<div class="browser-shell">
+  <nav>
+    <div class="nav-left">
+      <button id="menu-btn" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="nav-logo">&middot;&nbsp;PANERA&nbsp;&middot;</div>
+    <div class="nav-right">
+      <button id="user-btn" aria-label="User account">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
+      </button>
+      <button id="heart-btn" aria-label="Wishlist">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+      <button id="cart-btn" aria-label="Cart">
+        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/><path d="M8 4V3"/><path d="M16 4V3"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <div class="main-grid">
+    <div class="left-panel">
+      <div class="estd">
+        <span>ESTD</span>
+        <span class="estd-line"></span>
+        <span>2021</span>
+      </div>
+      <h1 class="hero-title">CGPA to IQ<br/>Predictor.</h1>
+      <p class="hero-subtitle">Enter your CGPA and get your<br/>predicted IQ score.</p>
+      <label class="input-label" for="cgpa-input">Enter your CGPA</label>
+      <div class="input-wrapper">
+        <input id="cgpa-input" class="cgpa-input" type="number" min="0" max="10" step="0.01" placeholder="0.00" value="8.45" />
+        <span class="input-suffix">/ 10.00</span>
+      </div>
+      <button class="predict-btn" id="predict-btn">Predict IQ</button>
+    </div>
+
+    <div class="right-panel" id="right-panel">
+      <p class="iq-label">Your Predicted IQ</p>
+      <div class="iq-score" id="iq-score">121</div>
+      <div class="iq-badge" id="iq-badge">
+        <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        <span id="iq-badge-text">Above Average</span>
+      </div>
+      <p class="iq-desc" id="iq-desc">Your score indicates strong cognitive<br/>potential and analytical ability.</p>
+      <div class="divider"></div>
+      <div class="skills-grid">
+        <div class="skill-item">
+          <svg class="skill-icon" viewBox="0 0 24 24">
+            <path d="M9.5 2A6.5 6.5 0 0 1 16 8.5c0 1.8-.7 3.4-1.9 4.6"/>
+            <path d="M14.5 2A6.5 6.5 0 0 0 8 8.5c0 1.8.7 3.4 1.9 4.6"/>
+            <path d="M12 13v3"/>
+            <path d="M8 22h8"/>
+            <path d="M10 19h4"/>
+            <path d="M10 16h4"/>
+          </svg>
+          <span class="skill-name">Logical Thinking</span>
+          <span class="skill-value" id="skill-1">High</span>
+        </div>
+        <div class="skill-item">
+          <svg class="skill-icon" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <circle cx="12" cy="12" r="6"/>
+            <circle cx="12" cy="12" r="2"/>
+          </svg>
+          <span class="skill-name">Problem Solving</span>
+          <span class="skill-value" id="skill-2">Strong</span>
+        </div>
+        <div class="skill-item">
+          <svg class="skill-icon" viewBox="0 0 24 24">
+            <path d="M9 21h6"/>
+            <path d="M9 18h6"/>
+            <path d="M12 2a7 7 0 0 1 7 7c0 2.6-1.4 4.9-3.5 6.2V18H8.5v-2.8C6.4 13.9 5 11.6 5 9a7 7 0 0 1 7-7z"/>
+          </svg>
+          <span class="skill-name">Learning Ability</span>
+          <span class="skill-value" id="skill-3">Excellent</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-left">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>This is an estimation based on statistical models.</span>
+    </div>
+    <div class="footer-right">Keep improving, keep growing.</div>
+  </footer>
+</div>
+
+<script>
+  function predictIQ(cgpa) {
+    const base = 70, range = 75;
+    const n = Math.min(Math.max(cgpa / 10, 0), 1);
+    return Math.round(base + Math.pow(n, 0.72) * range);
+  }
+
+  function getCategory(iq) {
+    if (iq >= 140) return { label:'Genius',         desc:'Your score reflects exceptional cognitive mastery and creative brilliance.',       l:'Exceptional', ps:'Mastery',    la:'Elite'     };
+    if (iq >= 130) return { label:'Very Superior',  desc:'Your score reflects outstanding analytical power and rapid learning.',            l:'Exceptional', ps:'Masterful',  la:'Elite'     };
+    if (iq >= 120) return { label:'Above Average',  desc:'Your score indicates strong cognitive potential and analytical ability.',         l:'High',        ps:'Strong',     la:'Excellent' };
+    if (iq >= 110) return { label:'High Average',   desc:'Your score reflects solid reasoning skills and above-average aptitude.',         l:'Solid',       ps:'Capable',    la:'Good'      };
+    if (iq >= 100) return { label:'Average',        desc:'Your score reflects steady cognitive ability and balanced reasoning.',           l:'Moderate',    ps:'Average',    la:'Average'   };
+    if (iq >=  90) return { label:'Low Average',    desc:'Your score shows baseline reasoning and everyday problem-solving skills.',       l:'Developing',  ps:'Basic',      la:'Moderate'  };
+    return               { label:'Below Average',   desc:'Keep working on your skills — consistent effort leads to growth!',              l:'Growing',     ps:'Developing', la:'Building'  };
+  }
+
+  const predictBtn = document.getElementById('predict-btn');
+  const cgpaInput  = document.getElementById('cgpa-input');
+  const iqScoreEl  = document.getElementById('iq-score');
+  const iqBadgeEl  = document.getElementById('iq-badge');
+  const iqDescEl   = document.getElementById('iq-desc');
+  const skill1     = document.getElementById('skill-1');
+  const skill2     = document.getElementById('skill-2');
+  const skill3     = document.getElementById('skill-3');
+
+  function runPrediction() {
+    const cgpa = parseFloat(cgpaInput.value);
+    if (isNaN(cgpa) || cgpa < 0 || cgpa > 10) {
+      cgpaInput.style.borderColor = '#a01c1c';
+      cgpaInput.focus();
+      setTimeout(() => cgpaInput.style.borderColor = '', 1200);
+      return;
+    }
+    const iq = predictIQ(cgpa);
+    const cat = getCategory(iq);
+    const startVal = parseInt(iqScoreEl.textContent) || 0;
+    const duration = 700;
+    const t0 = performance.now();
+
+    iqScoreEl.classList.remove('pop');
+    void iqScoreEl.offsetWidth;
+    iqScoreEl.classList.add('pop');
+
+    (function animate(now) {
+      const p = Math.min((now - t0) / duration, 1);
+      const e = 1 - Math.pow(1 - p, 3);
+      iqScoreEl.textContent = Math.round(startVal + (iq - startVal) * e);
+      if (p < 1) requestAnimationFrame(animate);
+    })(t0);
+
+    const arrow = iq >= 100
+      ? '<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--text-medium);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>'
+      : '<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--text-medium);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>';
+
+    iqBadgeEl.innerHTML = arrow + '<span>' + cat.label + '</span>';
+    iqDescEl.innerHTML = cat.desc;
+    skill1.textContent = cat.l;
+    skill2.textContent = cat.ps;
+    skill3.textContent = cat.la;
+  }
+
+  predictBtn.addEventListener('click', runPrediction);
+  cgpaInput.addEventListener('keydown', e => { if (e.key === 'Enter') runPrediction(); });
+  cgpaInput.addEventListener('blur', () => {
+    let v = parseFloat(cgpaInput.value);
+    if (!isNaN(v)) cgpaInput.value = Math.min(Math.max(v, 0), 10);
+  });
+</script>
+</body>
+</html>
