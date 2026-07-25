@@ -429,22 +429,7 @@
 </div>
 
 <script>
-  function predictIQ(cgpa) {
-    const base = 70, range = 75;
-    const n = Math.min(Math.max(cgpa / 10, 0), 1);
-    return Math.round(base + Math.pow(n, 0.72) * range);
-  }
-
-  function getCategory(iq) {
-    if (iq >= 140) return { label:'Genius',         desc:'Your score reflects exceptional cognitive mastery and creative brilliance.',       l:'Exceptional', ps:'Mastery',    la:'Elite'     };
-    if (iq >= 130) return { label:'Very Superior',  desc:'Your score reflects outstanding analytical power and rapid learning.',            l:'Exceptional', ps:'Masterful',  la:'Elite'     };
-    if (iq >= 120) return { label:'Above Average',  desc:'Your score indicates strong cognitive potential and analytical ability.',         l:'High',        ps:'Strong',     la:'Excellent' };
-    if (iq >= 110) return { label:'High Average',   desc:'Your score reflects solid reasoning skills and above-average aptitude.',         l:'Solid',       ps:'Capable',    la:'Good'      };
-    if (iq >= 100) return { label:'Average',        desc:'Your score reflects steady cognitive ability and balanced reasoning.',           l:'Moderate',    ps:'Average',    la:'Average'   };
-    if (iq >=  90) return { label:'Low Average',    desc:'Your score shows baseline reasoning and everyday problem-solving skills.',       l:'Developing',  ps:'Basic',      la:'Moderate'  };
-    return               { label:'Below Average',   desc:'Keep working on your skills — consistent effort leads to growth!',              l:'Growing',     ps:'Developing', la:'Building'  };
-  }
-
+  // ── DOM refs ──────────────────────────────────────────────────────────────
   const predictBtn = document.getElementById('predict-btn');
   const cgpaInput  = document.getElementById('cgpa-input');
   const iqScoreEl  = document.getElementById('iq-score');
@@ -454,46 +439,87 @@
   const skill2     = document.getElementById('skill-2');
   const skill3     = document.getElementById('skill-3');
 
-  function runPrediction() {
-    const cgpa = parseFloat(cgpaInput.value);
-    if (isNaN(cgpa) || cgpa < 0 || cgpa > 10) {
-      cgpaInput.style.borderColor = '#a01c1c';
-      cgpaInput.focus();
-      setTimeout(() => cgpaInput.style.borderColor = '', 1200);
-      return;
-    }
-    const iq = predictIQ(cgpa);
-    const cat = getCategory(iq);
-    const startVal = parseInt(iqScoreEl.textContent) || 0;
-    const duration = 700;
+  // ── Count-up animation ────────────────────────────────────────────────────
+  function animateCount(from, to, duration) {
     const t0 = performance.now();
-
     iqScoreEl.classList.remove('pop');
     void iqScoreEl.offsetWidth;
     iqScoreEl.classList.add('pop');
-
-    (function animate(now) {
+    (function tick(now) {
       const p = Math.min((now - t0) / duration, 1);
       const e = 1 - Math.pow(1 - p, 3);
-      iqScoreEl.textContent = Math.round(startVal + (iq - startVal) * e);
-      if (p < 1) requestAnimationFrame(animate);
+      iqScoreEl.textContent = Math.round(from + (to - from) * e);
+      if (p < 1) requestAnimationFrame(tick);
     })(t0);
-
-    const arrow = iq >= 100
-      ? '<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--text-medium);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>'
-      : '<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--text-medium);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>';
-
-    iqBadgeEl.innerHTML = arrow + '<span>' + cat.label + '</span>';
-    iqDescEl.innerHTML = cat.desc;
-    skill1.textContent = cat.l;
-    skill2.textContent = cat.ps;
-    skill3.textContent = cat.la;
   }
 
+  // ── Badge arrow SVG ───────────────────────────────────────────────────────
+  function arrowSVG(up) {
+    const pts = up
+      ? '23 6 13.5 15.5 8.5 10.5 1 18" /><polyline points="17 6 23 6 23 12'
+      : '23 18 13.5 8.5 8.5 13.5 1 6" /><polyline points="17 18 23 18 23 12';
+    return `<svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--text-medium);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polyline points="${pts}" /></svg>`;
+  }
+
+  // ── Update right panel with API response ──────────────────────────────────
+  function updatePanel(data) {
+    const from = parseInt(iqScoreEl.textContent) || 0;
+    animateCount(from, data.iq, 700);
+
+    iqBadgeEl.innerHTML = arrowSVG(data.iq >= 100) + `<span>${data.category}</span>`;
+    iqDescEl.textContent = data.description;
+    skill1.textContent = data.skills.logical;
+    skill2.textContent = data.skills.problem;
+    skill3.textContent = data.skills.learning;
+  }
+
+  // ── Loading state helpers ─────────────────────────────────────────────────
+  function setLoading(on) {
+    predictBtn.disabled = on;
+    predictBtn.textContent = on ? 'Predicting…' : 'Predict IQ';
+    predictBtn.style.opacity = on ? '0.75' : '1';
+  }
+
+  // ── Main prediction call → Flask /predict ─────────────────────────────────
+  async function runPrediction() {
+    const cgpa = parseFloat(cgpaInput.value);
+
+    if (isNaN(cgpa) || cgpa < 0 || cgpa > 10) {
+      cgpaInput.style.borderColor = '#a01c1c';
+      cgpaInput.focus();
+      setTimeout(() => (cgpaInput.style.borderColor = ''), 1200);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cgpa })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        alert('Prediction failed: ' + (err.error || res.statusText));
+        return;
+      }
+
+      const data = await res.json();
+      updatePanel(data);
+
+    } catch (err) {
+      alert('Could not reach the server. Is Flask running?\n\n' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ── Event listeners ───────────────────────────────────────────────────────
   predictBtn.addEventListener('click', runPrediction);
   cgpaInput.addEventListener('keydown', e => { if (e.key === 'Enter') runPrediction(); });
   cgpaInput.addEventListener('blur', () => {
-    let v = parseFloat(cgpaInput.value);
+    const v = parseFloat(cgpaInput.value);
     if (!isNaN(v)) cgpaInput.value = Math.min(Math.max(v, 0), 10);
   });
 </script>
